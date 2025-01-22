@@ -114,11 +114,19 @@
         </div>
 
         <!-- Footer -->
-        <div class="text-center text-gray-400 mt-8">
-            <a href="mailto:me@zekri.id" class="hover:text-blue-400 transition duration-200">
-                me@zekri.id
-            </a>
+                <div class="text-center text-gray-400 mt-8">
+            E-mail : <span id="email"></span>
         </div>
+
+        <script>
+            // Encode email to Base64
+            const base64Email = "bWVAemVrcmkuaWQ="; // "me@zekri.id" encoded in Base64
+
+            // Decode Base64 and render as mailto link
+            const decodedEmail = atob(base64Email);
+            const emailLink = `<a href="mailto:${decodedEmail}" class="hover:text-blue-400 transition duration-200">${decodedEmail}</a>`;
+            document.getElementById("email").innerHTML = emailLink;
+        </script>
     </div>
 
     <script>
