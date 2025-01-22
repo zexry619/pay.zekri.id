@@ -39,7 +39,7 @@ This project is an interactive web page designed to display a list of bank accou
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/zexry619/repository-name.git
+   git clone https://github.com/zexry619/pay.zekri.id.git
    ```
 
 2. Open the `index.html` file in your browser.
