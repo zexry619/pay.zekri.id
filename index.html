@@ -12,12 +12,13 @@
         
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
+            background: #1a202c;
             min-height: 100vh;
+            color: #edf2f7;
         }
 
         .card {
-            background: rgba(45, 45, 45, 0.7);
+            background: rgba(37, 46, 63, 0.8);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
@@ -30,12 +31,13 @@
 
         .copy-button {
             opacity: 0;
-            transition: opacity 0.2s ease;
+            transition: opacity 0.3s ease;
         }
 
         .card:hover .copy-button {
             opacity: 1;
         }
+
 
         .profile-img {
             border: 4px solid rgba(255, 255, 255, 0.1);
@@ -56,6 +58,85 @@
 
         .qris-section {
             background: rgba(59, 130, 246, 0.1);
+        }
+
+        .button {
+            background-color: #4299e1;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .button:hover {
+            background-color: #2b6cb0;
+        }
+
+        .button[disabled] {
+            background-color: #718096;
+            cursor: not-allowed;
+        }
+
+        #qrResult {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #qrImage {
+             border-radius: 10px;
+             padding: 10px;
+             margin: 10px;
+             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .copy-button {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .copy-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .input-error {
+          border-color: #f44336 !important;
+          box-shadow: 0 0 0 0.2rem rgba(244, 67, 54, 0.25) !important;
+        }
+
+        .error-message {
+            color: #f44336;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .loading-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -78,17 +159,18 @@
                     <i class="fas fa-qrcode mr-2"></i>QRIS Payment
                 </h2>
                 <div class="space-y-2">
-                    <label for="qty" class="text-sm font-medium">Amount (IDR):</label>
+                     <label for="qty" class="text-sm font-medium">Amount (IDR):</label>
                     <input type="text" id="qty" name="qty" required 
                         class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition duration-200">
+                     <div id="qty-error" class="error-message hidden">Please enter a valid amount.</div>
                 </div>
-                <button type="submit" 
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition duration-200">
+                <button type="submit" class="button">
                     Generate QR Code
+                    <span id="loadingIcon" class="loading-icon"></span>
                 </button>
             </form>
-            <div id="qrResult" class="mt-6 text-center hidden">
-                <h3 class="text-lg font-medium mb-3">Scan QR Code:</h3>
+            <div id="qrResult" class="mt-6">
+                <h3 class="text-lg font-medium mb-3 text-center">Scan QR Code:</h3>
                 <img id="qrImage" src="" alt="QR Code" class="mx-auto rounded-lg shadow-lg">
             </div>
         </div>
@@ -113,8 +195,8 @@
             </div>
         </div>
 
-        <!-- Footer -->
-                <div class="text-center text-gray-400 mt-8">
+       <!-- Footer -->
+        <div class="text-center text-gray-400 mt-8">
             E-mail : <span id="email"></span>
         </div>
 
@@ -130,7 +212,7 @@
     </div>
 
     <script>
-        // Bank accounts data
+          // Bank accounts data
         const accounts = [
             {name: 'Bank Mandiri', number: '1370021149311', icon: 'fa-building-columns'},
             {name: 'Bank BCA', number: '4560939006', icon: 'fa-building-columns'},
@@ -144,7 +226,6 @@
         accounts.forEach(account => {
             const div = document.createElement('div');
             div.className = 'card rounded-xl p-5 mb-4 cursor-pointer';
-            div.onclick = () => copyToClipboard(account.number);
             div.innerHTML = `
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-4">
@@ -156,7 +237,7 @@
                             <p class="text-gray-400">${account.number}</p>
                         </div>
                     </div>
-                    <button class="copy-button p-2 hover:bg-gray-700 rounded-lg transition-all">
+                    <button class="copy-button" onclick="copyToClipboard('${account.number}', this)">
                         <i class="fas fa-copy"></i>
                     </button>
                 </div>
@@ -164,8 +245,8 @@
             accountsList.appendChild(div);
         });
 
-        // QRIS handling functions
-        function convertCRC16(str) {
+         // QRIS handling functions
+         function convertCRC16(str) {
             let crc = 0xFFFF;
             for (let c = 0; c < str.length; c++) {
                 crc ^= str.charCodeAt(c) << 8;
@@ -182,32 +263,65 @@
         }
 
         function generateQRCode(qris, qty) {
-            qris = qris.slice(0, -4);
-            let step1 = qris.replace("010211", "010212");
-            let step2 = step1.split("5802ID");
-            let uang = "54" + qty.length.toString().padStart(2, '0') + qty;
-            uang += "5802ID";
+             qris = qris.slice(0, -4);
+             let step1 = qris.replace("010211", "010212");
+             let step2 = step1.split("5802ID");
+             let uang = "54" + qty.length.toString().padStart(2, '0') + qty;
+             uang += "5802ID";
 
-            let fix = step2[0].trim() + uang + step2[1].trim();
-            fix += convertCRC16(fix);
+             let fix = step2[0].trim() + uang + step2[1].trim();
+             fix += convertCRC16(fix);
 
-            return "https://api.qrserver.com/v1/create-qr-code/?data=" + encodeURIComponent(fix) + "&size=200x200&format=png";
-        }
+             return "https://api.qrserver.com/v1/create-qr-code/?data=" + encodeURIComponent(fix) + "&size=200x200&format=png";
+         }
 
         // Form handling
         document.getElementById('qrisForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const qty = document.getElementById('qty').value;
-            const qris = "00020101021126610014COM.GO-JEK.WWW01189360091432556391060210G2556391060303UMI51440014ID.CO.QRIS.WWW0215ID10243496804790303UMI5204481453033605802ID5921Zekri Ramadhan, MLATI6006SLEMAN61055528662070703A0163040118";
-            
-            const qrUrl = generateQRCode(qris, qty);
-            document.getElementById('qrImage').src = qrUrl;
-            document.getElementById('qrResult').classList.remove('hidden');
-        });
+           e.preventDefault();
+            const qtyInput = document.getElementById('qty');
+            const qty = qtyInput.value.trim();
+            const qtyError = document.getElementById('qty-error');
+            const generateButton = document.querySelector('#qrisForm button[type="submit"]');
+            const loadingIcon = document.getElementById('loadingIcon');
+            const qrResult = document.getElementById('qrResult');
 
-        // Clipboard function
-        function copyToClipboard(text) {
+            if (!/^\d+$/.test(qty) || parseInt(qty) <= 0) {
+                qtyInput.classList.add('input-error');
+                qtyError.classList.remove('hidden');
+                return;
+            } else {
+                qtyInput.classList.remove('input-error');
+                qtyError.classList.add('hidden');
+            }
+
+             generateButton.disabled = true;
+             loadingIcon.style.display = 'inline-block';
+
+            const qris = "00020101021126610014COM.GO-JEK.WWW01189360091432556391060210G2556391060303UMI51440014ID.CO.QRIS.WWW0215ID10243496804790303UMI5204481453033605802ID5921Zekri Ramadhan, MLATI6006SLEMAN61055528662070703A0163040118";
+
+
+            // Simulasikan loading dengan setTimeout
+            setTimeout(() => {
+                const qrUrl = generateQRCode(qris, qty);
+                document.getElementById('qrImage').src = qrUrl;
+                qrResult.style.display = 'flex';
+               generateButton.disabled = false;
+               loadingIcon.style.display = 'none';
+            }, 1500); 
+         });
+
+         // Clipboard function
+        function copyToClipboard(text, button) {
             navigator.clipboard.writeText(text).then(() => {
+                 // Change button text to "Copied"
+                 button.innerHTML = '<i class="fas fa-check"></i> Copied';
+
+                // Revert button text after 2 seconds
+                setTimeout(() => {
+                     button.innerHTML = '<i class="fas fa-copy"></i>';
+                 }, 2000);
+
+
                 const notification = document.createElement('div');
                 notification.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg';
                 notification.textContent = 'Account number copied!';
