@@ -213,37 +213,54 @@
 
     <script>
           // Bank accounts data
-        const accounts = [
-            {name: 'Bank Mandiri', number: '1370021149311', icon: 'fa-building-columns'},
-            {name: 'Bank BCA', number: '4560939006', icon: 'fa-building-columns'},
-            {name: 'Bank BRI', number: '580401010980534', icon: 'fa-building-columns'},
-            {name: 'SeaBank', number: '901441574369', icon: 'fa-building-columns'},
-            {name: 'E-Wallet', number: '082281470179', icon: 'fa-wallet'},
-        ];
+            const encodedAccounts = [
+                {
+                    name: 'Bank BCA',
+                    number: 'NDU2MDkzOTAwNg==',
+                    icon: 'fa-building-columns'
+                },
+                {
+                    name: 'Bank BRI',
+                    number: 'NTgwNDAxMDEwOTgwNTM0',
+                    icon: 'fa-building-columns'
+                },
+                {
+                    name: 'SeaBank',
+                    number: 'OTAxNDQxNTc0MzY5',
+                    icon: 'fa-building-columns'
+                },
+                {
+                    name: 'E-Wallet',
+                    number: 'MDgyMjgxNDcwMTc5',
+                    icon: 'fa-wallet'
+                }
+            ];
+
 
         // Populate accounts
-        const accountsList = document.getElementById('accountsList');
-        accounts.forEach(account => {
-            const div = document.createElement('div');
-            div.className = 'card rounded-xl p-5 mb-4 cursor-pointer';
-            div.innerHTML = `
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
-                            <i class="fas ${account.icon}"></i>
+            const accountsList = document.getElementById('accountsList');
+            encodedAccounts.forEach(account => {
+                const decodedNumber = atob(account.number);
+                const div = document.createElement('div');
+                div.className = 'card rounded-xl p-5 mb-4 cursor-pointer';
+                div.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+                                <i class="fas ${account.icon}"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg">${account.name}</h3>
+                                <p class="text-gray-400">${decodedNumber}</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="font-semibold text-lg">${account.name}</h3>
-                            <p class="text-gray-400">${account.number}</p>
-                        </div>
+                        <button class="copy-button" onclick="copyToClipboard('${decodedNumber}', this)">
+                            <i class="fas fa-copy"></i>
+                        </button>
                     </div>
-                    <button class="copy-button" onclick="copyToClipboard('${account.number}', this)">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                </div>
-            `;
-            accountsList.appendChild(div);
-        });
+                `;
+                accountsList.appendChild(div);
+            });
 
          // QRIS handling functions
          function convertCRC16(str) {
